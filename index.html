@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutorial: How to Get Cookie</title>
+  <style>
+    <style>
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg: #080b10;
+      --surface: #0e1219;
+      --card: #111827;
+      --card-hover: #161f30;
+      --border: rgba(255,255,255,0.06);
+      --border-glow: rgba(56,189,248,0.3);
+      --accent: #38bdf8;
+      --accent2: #7dd3fc;
+      --accent-dim: rgba(56,189,248,0.1);
+      --text: #e8edf3;
+      --text-muted: #7a8898;
+      --text-soft: #a8b8c8;
+      --glow: 0 0 40px rgba(56,189,248,0.15);
+      --font-title: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+      --font-body: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font-body);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* Animated background */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(ellipse at 20% 20%, rgba(56,189,248,0.05) 0%, transparent 50%),
+                  radial-gradient(ellipse at 80% 80%, rgba(56,189,248,0.03) 0%, transparent 50%);
+      animation: bgPulse 8s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes bgPulse {
+      0% { transform: scale(1) rotate(0deg); }
+      100% { transform: scale(1.05) rotate(2deg); }
+    }
+
+    /* Grid overlay */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: relative;
+      padding: 48px 0 0;
+      text-align: center;
+    }
+
+    .header-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-glow);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 28px;
+      animation: fadeDown 0.6s ease both;
+    }
+
+    .badge-dot {
+      width: 6px;
+      height: 6px;
+      background: var(--accent);
+      border-radius: 50%;
+      animation: blink 2s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    .main-title {
+      font-family: var(--font-title);
+      font-size: clamp(28px, 5vw, 52px);
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -0.5px;
+      animation: fadeDown 0.7s ease 0.1s both;
+    }
+
+    .main-title .highlight {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      margin-top: 16px;
+      color: var(--text-muted);
+      font-size: 16px;
+      font-weight: 300;
+      letter-spacing: 0.3px;
+      animation: fadeDown 0.7s ease 0.2s both;
+    }
+
+    .header-line {
+      width: 60px;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), transparent);
+      margin: 32px auto 0;
+      animation: expandWidth 0.8s ease 0.4s both;
+    }
+
+    @keyframes expandWidth {
+      from { width: 0; opacity: 0; }
+      to { width: 60px; opacity: 1; }
+    }
+
+    /* ── STEPS GRID ── */
+    .steps-section {
+      padding: 60px 0 100px;
+    }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      overflow: hidden;
+      margin-bottom: 28px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      cursor: default;
+      transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      opacity: 0;
+      transform: translateY(40px);
+    }
+
+    .step-card.in-view {
+      animation: slideUp 0.6s ease forwards;
+    }
+
+    @keyframes slideUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .step-card:hover {
+      border-color: var(--border-glow);
+      transform: translateY(-4px);
+      box-shadow: var(--glow), 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    /* Corner accent */
+    .step-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle at 0 0, rgba(56,189,248,0.08), transparent 70%);
+      border-radius: 0 0 100% 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .step-content {
+      padding: 28px 28px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-num {
+      font-family: var(--font-title);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .step-num::after {
+      content: '';
+      display: block;
+      height: 1px;
+      width: 30px;
+      background: var(--accent);
+      opacity: 0.4;
+    }
+
+    .step-title {
+      font-family: var(--font-title);
+      font-size: clamp(17px, 2.5vw, 22px);
+      font-weight: 700;
+      line-height: 1.2;
+      color: var(--text);
+    }
+
+    .step-desc {
+      font-size: 14px;
+      color: var(--text-soft);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    .step-tag {
+      display: inline-flex;
+      align-items: center;
+      background: var(--accent-dim);
+      border: 1px solid rgba(56,189,248,0.2);
+      border-radius: 6px;
+      padding: 5px 14px;
+      font-size: 12px;
+      color: var(--accent2);
+      font-weight: 500;
+      width: fit-content;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+
+    a.step-tag:hover {
+      background: rgba(56,189,248,0.18);
+      border-color: rgba(56,189,248,0.4);
+    }
+
+    .step-image-wrap {
+      width: 100%;
+      padding: 0 0 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: transparent;
+    }
+
+    .step-image-wrap img {
+      width: calc(100% - 32px);
+      height: auto;
+      max-height: 420px;
+      object-fit: contain;
+      display: block;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .step-card:hover .step-image-wrap img {
+      transform: scale(1.01);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+
+    /* ── FOOTER ── */
+    footer {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+      padding: 40px 24px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    footer span {
+      color: var(--accent);
+    }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 640px) {
+      .step-content {
+        padding: 22px 20px 16px;
+      }
+      .step-image-wrap img {
+        width: calc(100% - 24px);
+      }
+    }
+
+    /* Progress indicator */
+    .progress-bar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      z-index: 999;
+      transition: width 0.1s linear;
+      box-shadow: 0 0 10px var(--accent);
+    }
+
+    /* Step number circle */
+    .step-circle {
+      display: inline-flex;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--accent-dim);
+      border: 1px solid var(--border-glow);
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-title);
+      font-size: 14px;
+      font-weight: 800;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="progress-bar" id="progressBar"></div>
+
+  <div class="container">
+    <header>
+      <div class="header-badge">
+        <div class="badge-dot"></div>
+        Step-by-Step Guide
+
+      </div>
+      <h1 class="main-title">Tutorial: How to<br><span class="highlight">Get Cookie</span></h1>
+      <div class="header-line"></div>
+    </header>
+
+    <section class="steps-section">
+
+      <div class="step-card">
+        <div class="step-content">
+          <div class="step-num">
+            <div class="step-circle">1</div>
+            Step 01
+          </div>
+          <h2 class="step-title">I-download ang Kiwi Browser</h2>
+          <p class="step-desc">I-download ang Kiwi Browser sa <strong>Uptodown</strong> dahil wala na ito sa Play Store.</p>
+          <a href="https://kiwi-browser.en.uptodown.com/android/download" target="_blank" class="step-tag">uptodown.com/android/download</a>
+        </div>
+        <div class="step-image-wrap">
+          <img src="https://i.imgur.com/k8Lepbl.jpg" alt="Step 1 - Download Kiwi Browser" loading="lazy" />
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-content">
+          <div class="step-num">
+            <div class="step-circle">2</div>
+            Step 02
+          </div>
+          <h2 class="step-title">I-add ang Cookie Extension</h2>
+          <p class="step-desc">Buksan ang Kiwi Browser at i-copy paste ang link ng Cookie extension sa browser para ma-add to Chrome mo ito. Pagkatapos, i-click ang <strong>"Add to Chrome."</strong></p>
+          <a href="https://chromewebstore.google.com/detail/get-cookie/naciaagbkifhpnoodlkhbejjldaiffcm" target="_blank" class="step-tag">Cookie Extension Link</a>
+        </div>
+        <div class="step-image-wrap">
+          <img src="https://i.imgur.com/dEk7B9z.jpg" alt="Step 2 - Open Kiwi Browser" loading="lazy" />
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-content">
+          <div class="step-num">
+            <div class="step-circle">3</div>
+            Step 03
+          </div>
+          <h2 class="step-title">Mag-login sa Facebook</h2>
+          <p class="step-desc">Pagkatapos ma-install ang extension, punta sa Facebook login page gamit ang Kiwi Browser at mag-login sa Facebook account na gagamitin mo para sa autoshare.</p>
+          <a href="https://m.facebook.com/login/" target="_blank" class="step-tag">m.facebook.com/login</a>
+        </div>
+        <div class="step-image-wrap">
+          <img src="https://i.imgur.com/wVNVLh2.jpg" alt="Step 3 - Access Settings" loading="lazy" />
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-content">
+          <div class="step-num">
+            <div class="step-circle">4</div>
+            Step 04
+          </div>
+          <h2 class="step-title">I-click ang "Get Cookie"</h2>
+          <p class="step-desc">Kapag naka-login na, i-click ang <strong>3 dots</strong> sa itaas na kanan ng browser tapos i-scroll pababa hanggang makita mo ang option na <strong>"Get Cookie."</strong> I-click ito.</p>
+          <div class="step-tag">3 Dots Menu</div>
+        </div>
+        <div class="step-image-wrap">
+          <img src="https://i.imgur.com/xwLVfAi.jpg" alt="Step 4 - Install Extension" loading="lazy" />
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-content">
+          <div class="step-num">
+            <div class="step-circle">5</div>
+            Step 05
+          </div>
+          <h2 class="step-title">I-copy ang Cookie</h2>
+          <p class="step-desc">I-click ang <strong>"Get Cookie"</strong> tapos i-copy lahat ng lumabas na cookie na nakalagay sa box.</p>
+          <div class="step-tag">Copy Cookie</div>
+        </div>
+        <div class="step-image-wrap">
+          <img src="https://i.imgur.com/mcjmUnU.jpg" alt="Step 5 - Configure Extension" loading="lazy" />
+        </div>
+      </div>
+
+      <div class="step-card">
+        <div class="step-content">
+          <div class="step-num">
+            <div class="step-circle">6</div>
+            Step 06
+          </div>
+          <h2 class="step-title">I-paste sa Autoshare Site</h2>
+          <p class="step-desc">Pumunta sa autoshare site at i-paste doon ang kinopya mong cookie. Ilagay ang Facebook link na gusto mong i-autoshare, pati na rin ang <strong>amount</strong> at <strong>delay</strong>. Pagkatapos, pindutin ang <strong>"Start Sharing."</strong></p>
+          <a href="https://mysteriousq-autoshare.onrender.com/" target="_blank" class="step-tag">mysteriousq-autoshare.onrender.com</a>
+        </div>
+        <div class="step-image-wrap">
+          <img src="https://i.imgur.com/KaDOl8E.jpg" alt="Step 6 - Complete" loading="lazy" />
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <footer>
+    <p style="font-size:15px; color: var(--text-soft); margin-bottom: 16px;">kung may gusto mag support o mag donate pang kape, sobrang ma appreciate ko ✌🏿</p>
+    <div style="display:inline-flex; align-items:center; gap:14px; background:var(--card); border:1px solid var(--border-glow); border-radius:14px; padding:16px 28px;">
+      <div style="text-align:left;">
+        <div style="font-size:11px; letter-spacing:2px; text-transform:uppercase; color:var(--accent); font-weight:600; margin-bottom:4px;">GCash</div>
+        <div style="font-family: var(--font-title); font-size:20px; font-weight:800; color:var(--text); letter-spacing:1px;">09070844830</div>
+        <div style="font-size:13px; color:var(--text-muted); margin-top:2px;">NO M N.</div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Progress bar
+    const progressBar = document.getElementById('progressBar');
+    window.addEventListener('scroll', () => {
+      const scrollTop = window.scrollY;
+      const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+      const progress = (scrollTop / docHeight) * 100;
+      progressBar.style.width = progress + '%';
+    });
+
+    // Scroll-triggered animations
+    const cards = document.querySelectorAll('.step-card');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry, i) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => {
+            entry.target.classList.add('in-view');
+          }, 100);
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1, rootMargin: '0px 0px -60px 0px' });
+
+    cards.forEach(card => observer.observe(card));
+
+    // Staggered delay for visible cards on load
+    cards.forEach((card, i) => {
+      card.style.animationDelay = (i * 0.1) + 's';
+    });
+  </script>
+</body>
+</html>
